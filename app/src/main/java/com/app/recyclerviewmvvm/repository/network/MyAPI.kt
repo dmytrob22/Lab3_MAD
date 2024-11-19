@@ -9,18 +9,19 @@ import retrofit2.http.Query
 
 interface MyAPI {
 
-    @GET("http://www.omdbapi.com/?apikey=899f27bf")
+    @GET("?apikey=899f27bf")
     suspend fun getMovies(
-        @Query("s") search: String
+        @Query("s") search: String // The search query parameter
     ): Response<MoviesResponse>
 
     companion object {
+        // Factory method to create an instance of MyAPI
         operator fun invoke(): MyAPI {
             return Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl("http://www.omdbapi.com/")
+                .addConverterFactory(GsonConverterFactory.create()) // Converts JSON to Kotlin objects
                 .build()
-                .create(MyAPI::class.java)
+                .create(MyAPI::class.java) // Creates the Retrofit implementation of MyAPI
         }
     }
 }

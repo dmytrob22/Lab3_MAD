@@ -18,8 +18,8 @@ class MovieNetworkDataSource {
         }
 
         response?.let {
-            if (response.isSuccessful) {
-                movies = response.body()?.movieList
+            if (it.isSuccessful) {
+                movies = it.body()?.movieList
             }
         }
 

@@ -7,21 +7,22 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class MovieRepository
-@Inject constructor(
-    private val movieDatabase: MovieDatabase
+class MovieRepository @Inject constructor(
+    private val movieDatabase: MovieDatabase // Injected MovieDatabase instance
 ) {
 
     val movies = movieDatabase.movieDatabaseDao.getAllMovies()
 
     suspend fun refreshFranchiseMovies(franchiseName: String) {
+        // Switches to IO thread for network operations
         withContext(Dispatchers.IO) {
-            val movies = async {
+            val moviesFromNetwork = async {
                 MovieNetworkDataSource().fetchFranchiseMovies(franchiseName)
             }
-            movies.await()?.let {
+
+            moviesFromNetwork.await()?.let { newMovies ->
                 movieDatabase.movieDatabaseDao.clear()
-                movieDatabase.movieDatabaseDao.insert(it)
+                movieDatabase.movieDatabaseDao.insert(newMovies)
             }
         }
     }

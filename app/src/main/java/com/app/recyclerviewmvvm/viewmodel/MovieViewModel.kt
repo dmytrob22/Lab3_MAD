@@ -12,35 +12,37 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MovieViewModel @Inject constructor(
-    movieRepository: MovieRepository
+    private val movieRepository: MovieRepository
 ) : ViewModel() {
 
-    val movies = movieRepository.movies
+    val movies: LiveData<List<Movie>> = movieRepository.movies
 
-    private var _darkMode = MutableLiveData<Boolean>()
+    private val _darkMode = MutableLiveData<Boolean>(false)
     val darkMode: LiveData<Boolean>
         get() = _darkMode
 
+    private val _navigateToMovieDetail = MutableLiveData<Movie?>()
+    val navigateToMovieDetail: LiveData<Movie?>
+        get() = _navigateToMovieDetail
+
     init {
+        // Fetch movies for "Lord of the Rings" on ViewModel initialization
         viewModelScope.launch {
-            movieRepository.refreshFranchiseMovies("Lord of the rings")
+            movieRepository.refreshFranchiseMovies("Lord of the Rings")
         }
-        _darkMode.value = false
     }
 
+    // Toggle dark mode value
     fun darkModeChange() {
         _darkMode.value = _darkMode.value != true
     }
 
-    //Navigate to detail
-    private val _navigateToMovieDetail = MutableLiveData<Movie?>()
-    val navigateToMovieDetail
-        get() = _navigateToMovieDetail
-
+    // Set the selected movie for navigation
     fun onMovieClicked(movie: Movie) {
         _navigateToMovieDetail.value = movie
     }
 
+    // Reset the navigation event after it's handled
     fun onMovieDetailNavigated() {
         _navigateToMovieDetail.value = null
     }

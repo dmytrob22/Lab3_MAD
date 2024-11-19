@@ -15,36 +15,40 @@ class BaseApplication : Application() {
 
     private val applicationScope = CoroutineScope(Dispatchers.Default)
 
-    private fun delayedInit() {
+    override fun onCreate() {
+        super.onCreate()
+//        initializeBackgroundWork()
+    }
+
+    private fun initializeBackgroundWork() {
         applicationScope.launch {
             setupRecurringWork()
         }
     }
 
     private fun setupRecurringWork() {
+        // Define work constraints
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.UNMETERED)
             .setRequiresBatteryNotLow(true)
             .setRequiresCharging(true)
             .apply {
+                // Add device idle constraint for API 23+ devices
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     setRequiresDeviceIdle(true)
                 }
             }.build()
 
-        val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(1, TimeUnit.DAYS)
+        // Create a periodic work request
+        val workRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(1, TimeUnit.DAYS)
             .setConstraints(constraints)
             .build()
 
+        // Schedule the periodic work
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
             RefreshDataWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
-            repeatingRequest
+            workRequest
         )
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-//        delayedInit()
     }
 }

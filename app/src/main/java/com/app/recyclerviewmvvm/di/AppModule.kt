@@ -11,16 +11,22 @@ import com.app.recyclerviewmvvm.repository.network.MovieNetworkDataSource
 import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)
+@InstallIn(SingletonComponent::class) // Ensures dependencies are tied to the application's lifecycle
 object AppModule {
 
+    // Provides a singleton instance of MovieDatabase
     @Singleton
     @Provides
     fun provideDatabase(
-        @ApplicationContext context: Context
-    ) = MovieDatabase.getInstance(context)
+        @ApplicationContext context: Context // Injects the application context
+    ): MovieDatabase {
+        return MovieDatabase.getInstance(context) // Retrieves the singleton database instance
+    }
 
+    // Provides a singleton instance of MovieNetworkDataSource
     @Singleton
     @Provides
-    fun provideMovieNetworkDataSource() = MovieNetworkDataSource()
+    fun provideMovieNetworkDataSource(): MovieNetworkDataSource {
+        return MovieNetworkDataSource() // Constructs the network data source
+    }
 }

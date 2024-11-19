@@ -10,21 +10,23 @@ import retrofit2.HttpException
 class RefreshDataWorker(
     appContext: Context,
     workerParams: WorkerParameters
-) : CoroutineWorker(
-    appContext,
-    workerParams) {
+) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
         const val WORK_NAME = "RefreshDataWorker"
     }
 
     override suspend fun doWork(): Result {
-        val dataSource = MovieDatabase.getInstance(applicationContext)
+        // Initialize database and repository
+        val database = MovieDatabase.getInstance(applicationContext)
+        val repository = MovieRepository(database)
+
         return try {
-            val repository = MovieRepository(dataSource)
-            repository.refreshFranchiseMovies("Lord of the rings")
+            // Refresh movie data for the "Lord of the Rings" franchise
+            repository.refreshFranchiseMovies("Lord of the Rings")
             Result.success()
-        } catch (e: HttpException) {
+        } catch (exception: HttpException) {
+            // Retry on network errors
             Result.retry()
         }
     }

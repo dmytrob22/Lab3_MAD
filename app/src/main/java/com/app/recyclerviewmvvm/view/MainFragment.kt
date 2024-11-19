@@ -19,52 +19,51 @@ import com.app.recyclerviewmvvm.viewmodel.MovieViewModel
 @AndroidEntryPoint
 class MainFragment : Fragment() {
 
+    // Initialize viewModel on fragment creation
+    private val movieViewModel: MovieViewModel by viewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
 
-        // Inflate the layout for this fragment
-        val binding: FragmentMainBinding =
-            DataBindingUtil.inflate(
-                inflater,
-                R.layout.fragment_main,
-                container,
-                false)
-
-        val movieViewModel: MovieViewModel by viewModels()
-
-        val movieAdapter = MovieAdapter(
-            MovieListener {
-                movie -> movieViewModel.onMovieClicked(movie)
-            }
+        // Inflate the layout for this fragment and set up data binding
+        val binding: FragmentMainBinding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_main,
+            container,
+            false
         )
 
+        // Initialize the MovieAdapter and pass the listener
+        val movieAdapter = MovieAdapter(MovieListener { movie ->
+            movieViewModel.onMovieClicked(movie)
+        })
+
+        // Set adapter for the RecyclerView
         binding.movieRecyclerview.adapter = movieAdapter
+
+        // Bind the viewModel to the layout
         binding.viewmodel = movieViewModel
 
-        movieViewModel.navigateToMovieDetail.observe(viewLifecycleOwner) {
-            movie -> movie?.let {
-                this.findNavController().navigate(
-                    MainFragmentDirections
-                        .actionMainFragmentToDetailFragment(movie)
-                )
-                movieViewModel.onMovieDetailNavigated()
+        // Observe navigation events and navigate to the movie detail screen
+        movieViewModel.navigateToMovieDetail.observe(viewLifecycleOwner) { movie ->
+            movie?.let {
+                findNavController().navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(movie))
+                movieViewModel.onMovieDetailNavigated() // Reset the navigation event
             }
         }
 
+        // Observe the movie list and update the adapter
         movieViewModel.movies.observe(viewLifecycleOwner) {
             movieAdapter.differ.submitList(it)
             binding.groupLoading.visibility = View.GONE
         }
 
-        movieViewModel.darkMode.observe(viewLifecycleOwner) {
-            setDefaultNightMode(
-                if (it)
-                    MODE_NIGHT_YES
-                else
-                    MODE_NIGHT_NO)
+        // Observe dark mode preference and update the theme accordingly
+        movieViewModel.darkMode.observe(viewLifecycleOwner) { isDarkMode ->
+            setDefaultNightMode(if (isDarkMode) MODE_NIGHT_YES else MODE_NIGHT_NO)
         }
 
         return binding.root
